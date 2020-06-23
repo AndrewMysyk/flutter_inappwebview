@@ -1,6 +1,7 @@
 package com.pichillilorenzo.flutter_inappbrowser.InAppWebView;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.net.http.SslError;
@@ -31,10 +32,14 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import io.flutter.plugin.common.MethodChannel;
 import okhttp3.Request;
 import okhttp3.Response;
+
+import static java.security.AccessController.getContext;
 
 public class InAppWebViewClient extends WebViewClient {
 
@@ -125,7 +130,19 @@ public class InAppWebViewClient extends WebViewClient {
       } catch (android.content.ActivityNotFoundException e) {
         Log.e(LOG_TAG, "Error dialing " + url + ": " + e.toString());
       }
-    } else if (url.startsWith("geo:") || url.startsWith(WebView.SCHEME_MAILTO) || url.startsWith("market:") || url.startsWith("intent:")) {
+    } else if (url.startsWith("intent:")) {
+      Uri uri = Uri.parse(url);
+      String appPackage = getAppPackageFromUri(uri);
+
+      if (appPackage != null) {
+        PackageManager manager = ((inAppBrowserActivity != null) ? inAppBrowserActivity : flutterWebView.activity).getPackageManager();
+        Intent appIntent = manager.getLaunchIntentForPackage(appPackage);
+
+        if (appIntent != null) {
+          ((inAppBrowserActivity != null) ? inAppBrowserActivity : flutterWebView.activity).startActivity(appIntent);
+        }
+      }
+    } else if (url.startsWith("geo:") || url.startsWith(WebView.SCHEME_MAILTO) || url.startsWith("market:")) {
       try {
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(Uri.parse(url));
@@ -394,6 +411,16 @@ public class InAppWebViewClient extends WebViewClient {
       e.printStackTrace();
       Log.d(LOG_TAG, e.getMessage());
     }
+
+    return null;
+  }
+
+  private String getAppPackageFromUri(Uri intentUri) {
+    Pattern pattern = Pattern.compile("package=(.*?);");
+    Matcher matcher = pattern.matcher(intentUri.getFragment());
+
+    if (matcher.find())
+      return matcher.group(1);
 
     return null;
   }
