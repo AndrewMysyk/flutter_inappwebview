@@ -140,6 +140,7 @@ public class InAppWebViewClient extends WebViewClient {
 
         if (appIntent != null) {
           ((inAppBrowserActivity != null) ? inAppBrowserActivity : flutterWebView.activity).startActivity(appIntent);
+          return true;
         }
       }
     } else if (url.startsWith("geo:") || url.startsWith(WebView.SCHEME_MAILTO) || url.startsWith("market:")) {
