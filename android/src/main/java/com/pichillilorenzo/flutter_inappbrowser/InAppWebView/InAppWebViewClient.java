@@ -183,6 +183,24 @@ public class InAppWebViewClient extends WebViewClient {
       } catch (android.content.ActivityNotFoundException e) {
         Log.e(LOG_TAG, "Error sending sms " + url + ":" + e.toString());
       }
+    } else if (url.startsWith("nl.abnamro.ideal") || 
+              url.startsWith("nl-snsbank-ideal") || 
+              url.startsWith("nl.rabobank.ideal") || 
+              url.startsWith("nl-asnbank-ideal") || 
+              url.startsWith("nl-regiobank-ideal") ||
+              url.startsWith("triodosmobilebanking") || 
+              url.startsWith("knap-app") || 
+              url.startsWith("bunq") || 
+              url.startsWith("moneyounl") || 
+              url.startsWith("shb-nlpriv")) {
+      try {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse(url));
+        ((inAppBrowserActivity != null) ? inAppBrowserActivity : flutterWebView.activity).startActivity(intent);
+        return true;
+      } catch (android.content.ActivityNotFoundException e) {
+        Log.e(LOG_TAG, "Error with " + url + ": " + e.toString());
+      }
     }
 
     return super.shouldOverrideUrlLoading(webView, url);
