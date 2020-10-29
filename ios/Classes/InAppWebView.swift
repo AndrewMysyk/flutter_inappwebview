@@ -514,7 +514,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
     public func webView(_ webView: WKWebView,
                  decidePolicyFor navigationAction: WKNavigationAction,
                  decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        
+        onDecideLoad(navigationAction.request.url?.absoluteString ?? "")
         if let url = navigationAction.request.url {
             
             if url.absoluteString != url.absoluteString && (options?.useOnLoadResource)! {
@@ -544,7 +544,6 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
     public func webView(_ webView: WKWebView,
                  decidePolicyFor navigationResponse: WKNavigationResponse,
                  decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
-        
         if (options?.useOnLoadResource)! {
             if let url = navigationResponse.response.url {
                 if WKNavigationMap[url.absoluteString] != nil {
@@ -558,35 +557,6 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
         
         decisionHandler(.allow)
     }
-    
-    func webView(_ webView: WKWebView,
-                decidePolicyFor navigationResponse: WKNavigationResponse,
-                decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
-        onDecideLoad(url: url)
-        decisionHandler(.allow)
-    }
-    //
-    //    func download (url: URL?) {
-    //        let filename = url?.lastPathComponent
-    //
-    //        let destination: DownloadRequest.DownloadFileDestination = { _, _ in
-    //            let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-    //            let fileURL = documentsURL.appendingPathComponent(filename!)
-    //
-    //            return (fileURL, [.removePreviousFile, .createIntermediateDirectories])
-    //        }
-    //
-    //        Alamofire.download((url?.absoluteString)!, to: destination).downloadProgress { progress in
-    //            print("Download Progress: \(progress.fractionCompleted)")
-    //            }.response { response in
-    //                if response.error == nil, let path = response.destinationURL?.path {
-    //                    UIAlertView(title: nil, message: "File saved to " + path, delegate: nil, cancelButtonTitle: nil).show()
-    //                }
-    //                else {
-    //                   UIAlertView(title: nil, message: "Cannot save " + filename!, delegate: nil, cancelButtonTitle: nil).show()
-    //                }
-    //            }
-    //    }
     
     public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
         self.startPageTime = currentTimeInMilliSeconds()
