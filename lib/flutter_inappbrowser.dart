@@ -50,26 +50,21 @@ typedef dynamic JavaScriptHandlerCallback(List<dynamic> arguments);
 var _uuidGenerator = new Uuid();
 
 ///
-enum ConsoleMessageLevel {
-  DEBUG, ERROR, LOG, TIP, WARNING
-}
+enum ConsoleMessageLevel { DEBUG, ERROR, LOG, TIP, WARNING }
 
 ///Public class representing a resource request of the [InAppBrowser] WebView.
 ///It is used by the method [InAppBrowser.onLoadResource()].
 class WebResourceRequest {
-
   String url;
   Map<String, String> headers;
   String method;
 
   WebResourceRequest(this.url, this.headers, this.method);
-
 }
 
 ///Public class representing a resource response of the [InAppBrowser] WebView.
 ///It is used by the method [InAppBrowser.onLoadResource()].
 class WebResourceResponse {
-
   String url;
   Map<String, String> headers;
   int statusCode;
@@ -77,8 +72,8 @@ class WebResourceResponse {
   int duration;
   Uint8List data;
 
-  WebResourceResponse(this.url, this.headers, this.statusCode, this.startTime, this.duration, this.data);
-
+  WebResourceResponse(this.url, this.headers, this.statusCode, this.startTime,
+      this.duration, this.data);
 }
 
 ///Public class representing a JavaScript console message from WebCore.
@@ -86,17 +81,18 @@ class WebResourceResponse {
 ///
 ///To receive notifications of these messages, override the [InAppBrowser.onConsoleMessage()] function.
 class ConsoleMessage {
-
   String sourceURL = "";
   int lineNumber = 1;
   String message = "";
   ConsoleMessageLevel messageLevel = ConsoleMessageLevel.LOG;
 
-  ConsoleMessage(this.sourceURL, this.lineNumber, this.message, this.messageLevel);
+  ConsoleMessage(
+      this.sourceURL, this.lineNumber, this.message, this.messageLevel);
 }
 
 class _ChannelManager {
-  static const MethodChannel channel = const MethodChannel('com.pichillilorenzo/flutter_inappbrowser');
+  static const MethodChannel channel =
+      const MethodChannel('com.pichillilorenzo/flutter_inappbrowser');
   static bool initialized = false;
   static final listeners = HashMap<String, ListenerCallback>();
 
@@ -106,12 +102,11 @@ class _ChannelManager {
   }
 
   static void addListener(String key, ListenerCallback callback) {
-    if (!initialized)
-      init();
+    if (!initialized) init();
     listeners.putIfAbsent(key, () => callback);
   }
 
-  static void init () {
+  static void init() {
     channel.setMethodCallHandler(_handleMethod);
     initialized = true;
   }
@@ -121,23 +116,25 @@ class _ChannelManager {
 ///
 ///This class uses the native WebView of the platform.
 class InAppBrowser {
-
   String uuid;
-  Map<String, JavaScriptHandlerCallback> javaScriptHandlersMap = HashMap<String, JavaScriptHandlerCallback>();
+  Map<String, JavaScriptHandlerCallback> javaScriptHandlersMap =
+      HashMap<String, JavaScriptHandlerCallback>();
   bool _isOpened = false;
+
   /// WebView Controller that can be used to access the [InAppWebView] API.
   InAppWebViewController webViewController;
 
   ///
-  InAppBrowser () {
+  InAppBrowser() {
     uuid = _uuidGenerator.v4();
     _ChannelManager.addListener(uuid, _handleMethod);
     _isOpened = false;
-    webViewController = new InAppWebViewController.fromInAppBrowser(uuid, _ChannelManager.channel, this);
+    webViewController = new InAppWebViewController.fromInAppBrowser(
+        uuid, _ChannelManager.channel, this);
   }
 
   Future<dynamic> _handleMethod(MethodCall call) async {
-    switch(call.method) {
+    switch (call.method) {
       case "onBrowserCreated":
         this._isOpened = true;
         onBrowserCreated();
@@ -208,7 +205,10 @@ class InAppBrowser {
   ///    - __allowsInlineMediaPlayback__: Set to `true` to allow HTML5 media playback to appear inline within the screen layout, using browser-supplied controls rather than native controls. For this to work, add the `webkit-playsinline` attribute to any `<video>` elements. The default value is `false`.
   ///    - __allowsPictureInPictureMediaPlayback__: Set to `true` to allow HTML5 videos play picture-in-picture. The default value is `true`.
   ///    - __spinner__: Set to `false` to hide the spinner when the WebView is loading a page. The default value is `true`.
-  Future<void> open({String url = "about:blank", Map<String, String> headers = const {}, Map<String, dynamic> options = const {}}) async {
+  Future<void> open(
+      {String url = "about:blank",
+      Map<String, String> headers = const {},
+      Map<String, dynamic> options = const {}}) async {
     assert(url != null && url.isNotEmpty);
     this._throwIsAlreadyOpened(message: 'Cannot open $url!');
     Map<String, dynamic> args = <String, dynamic>{};
@@ -252,7 +252,9 @@ class InAppBrowser {
   ///inAppBrowser.openFile("assets/index.html");
   ///...
   ///```
-  Future<void> openFile(String assetFilePath, {Map<String, String> headers = const {}, Map<String, dynamic> options = const {}}) async {
+  Future<void> openFile(String assetFilePath,
+      {Map<String, String> headers = const {},
+      Map<String, dynamic> options = const {}}) async {
     assert(assetFilePath != null && assetFilePath.isNotEmpty);
     this._throwIsAlreadyOpened(message: 'Cannot open $assetFilePath!');
     Map<String, dynamic> args = <String, dynamic>{};
@@ -270,7 +272,11 @@ class InAppBrowser {
   ///Opens a new [InAppBrowser] instance with [data] as a content, using [baseUrl] as the base URL for it.
   ///The [mimeType] parameter specifies the format of the data.
   ///The [encoding] parameter specifies the encoding of the data.
-  Future<void> openData(String data, {String mimeType = "text/html", String encoding = "utf8", String baseUrl = "about:blank", Map<String, dynamic> options = const {}}) async {
+  Future<void> openData(String data,
+      {String mimeType = "text/html",
+      String encoding = "utf8",
+      String baseUrl = "about:blank",
+      Map<String, dynamic> options = const {}}) async {
     assert(data != null);
     Map<String, dynamic> args = <String, dynamic>{};
     args.putIfAbsent('uuid', () => uuid);
@@ -349,7 +355,8 @@ class InAppBrowser {
     Map<String, dynamic> args = <String, dynamic>{};
     args.putIfAbsent('uuid', () => uuid);
     args.putIfAbsent('optionsType', () => "InAppBrowserOptions");
-    Map<dynamic, dynamic> options = await _ChannelManager.channel.invokeMethod('getOptions', args);
+    Map<dynamic, dynamic> options =
+        await _ChannelManager.channel.invokeMethod('getOptions', args);
     options = options.cast<String, dynamic>();
     return options;
   }
@@ -360,72 +367,57 @@ class InAppBrowser {
   }
 
   ///Event fires when the [InAppBrowser] is created.
-  void onBrowserCreated() {
-
-  }
+  void onBrowserCreated() {}
 
   ///Event fires when the [InAppBrowser] starts to load an [url].
-  void onLoadStart(String url) {
-
-  }
+  void onLoadStart(String url) {}
 
   ///Event fires when the [InAppBrowser] finishes loading an [url].
-  void onLoadStop(String url) {
-
-  }
+  void onLoadStop(String url) {}
 
   ///Event fires when the [InAppBrowser] encounters an error loading an [url].
-  void onLoadError(String url, int code, String message) {
-
-  }
+  void onLoadError(String url, int code, String message) {}
 
   ///Event fires when the current [progress] (range 0-100) of loading a page is changed.
-  void onProgressChanged(int progress) {
-
-  }
+  void onProgressChanged(int progress) {}
 
   ///Event fires when the [InAppBrowser] window is closed.
-  void onExit() {
-
-  }
+  void onExit() {}
 
   ///Event fires when the [InAppBrowser] webview receives a [ConsoleMessage].
-  void onConsoleMessage(ConsoleMessage consoleMessage) {
-
-  }
+  void onConsoleMessage(ConsoleMessage consoleMessage) {}
 
   ///Give the host application a chance to take control when a URL is about to be loaded in the current WebView.
   ///
   ///**NOTE**: In order to be able to listen this event, you need to set `useShouldOverrideUrlLoading` option to `true`.
-  void shouldOverrideUrlLoading(String url) {
-
-  }
+  void shouldOverrideUrlLoading(String url) {}
 
   ///Event fires when the [InAppBrowser] webview loads a resource.
   ///
   ///**NOTE**: In order to be able to listen this event, you need to set `useOnLoadResource` option to `true`.
   ///
   ///**NOTE only for iOS**: In some cases, the [response.data] of a [response] with `text/assets` encoding could be empty.
-  void onLoadResource(WebResourceResponse response, WebResourceRequest request) {
-
-  }
+  void onLoadResource(
+      WebResourceResponse response, WebResourceRequest request) {}
 
   ///Event fires when the [InAppBrowser] webview scrolls.
   ///[x] represents the current horizontal scroll origin in pixels.
   ///[y] represents the current vertical scroll origin in pixels.
-  void onScrollChanged(int x, int y) {
-
-  }
+  void onScrollChanged(int x, int y) {}
 
   void _throwIsAlreadyOpened({String message = ''}) {
     if (this.isOpened()) {
-      throw Exception(['Error: ${ (message.isEmpty) ? '' : message + ' '}The browser is already opened.']);
+      throw Exception([
+        'Error: ${(message.isEmpty) ? '' : message + ' '}The browser is already opened.'
+      ]);
     }
   }
 
   void _throwIsNotOpened({String message = ''}) {
     if (!this.isOpened()) {
-      throw Exception(['Error: ${ (message.isEmpty) ? '' : message + ' '}The browser is not opened.']);
+      throw Exception([
+        'Error: ${(message.isEmpty) ? '' : message + ' '}The browser is not opened.'
+      ]);
     }
   }
 }
@@ -442,7 +434,7 @@ class ChromeSafariBrowser {
   bool _isOpened = false;
 
   ///Initialize the [ChromeSafariBrowser] instance with an [InAppBrowser] fallback instance or `null`.
-  ChromeSafariBrowser (bf) {
+  ChromeSafariBrowser(bf) {
     uuid = _uuidGenerator.v4();
     browserFallback = bf;
     _ChannelManager.addListener(uuid, _handleMethod);
@@ -450,7 +442,7 @@ class ChromeSafariBrowser {
   }
 
   Future<dynamic> _handleMethod(MethodCall call) async {
-    switch(call.method) {
+    switch (call.method) {
       case "onChromeSafariBrowserOpened":
         onOpened();
         break;
@@ -493,12 +485,16 @@ class ChromeSafariBrowser {
   ///- __preferredControlTintColor__: Set the custom color of the control buttons on the navigation bar and the toolbar.
   ///- __presentationStyle__: Set the custom modal presentation style when presenting the WebView. The default value is `0 //fullscreen`. See [UIModalPresentationStyle](https://developer.apple.com/documentation/uikit/uimodalpresentationstyle) for all the available styles.
   ///- __transitionStyle__: Set to the custom transition style when presenting the WebView. The default value is `0 //crossDissolve`. See [UIModalTransitionStyle](https://developer.apple.com/documentation/uikit/uimodaltransitionStyle) for all the available styles.
-  Future<void> open(String url, {Map<String, dynamic> options = const {}, Map<String, String> headersFallback = const {}, Map<String, dynamic> optionsFallback = const {}}) async {
+  Future<void> open(String url,
+      {Map<String, dynamic> options = const {},
+      Map<String, String> headersFallback = const {},
+      Map<String, dynamic> optionsFallback = const {}}) async {
     assert(url != null && url.isNotEmpty);
     this._throwIsAlreadyOpened(message: 'Cannot open $url!');
     Map<String, dynamic> args = <String, dynamic>{};
     args.putIfAbsent('uuid', () => uuid);
-    args.putIfAbsent('uuidFallback', () => (browserFallback != null) ? browserFallback.uuid : '');
+    args.putIfAbsent('uuidFallback',
+        () => (browserFallback != null) ? browserFallback.uuid : '');
     args.putIfAbsent('url', () => url);
     args.putIfAbsent('headers', () => headersFallback);
     args.putIfAbsent('options', () => options);
@@ -510,19 +506,13 @@ class ChromeSafariBrowser {
   }
 
   ///Event fires when the [ChromeSafariBrowser] is opened.
-  void onOpened() {
-
-  }
+  void onOpened() {}
 
   ///Event fires when the [ChromeSafariBrowser] is loaded.
-  void onLoaded() {
-
-  }
+  void onLoaded() {}
 
   ///Event fires when the [ChromeSafariBrowser] is closed.
-  void onClosed() {
-
-  }
+  void onClosed() {}
 
   bool isOpened() {
     return this._isOpened;
@@ -530,26 +520,43 @@ class ChromeSafariBrowser {
 
   void _throwIsAlreadyOpened({String message = ''}) {
     if (this.isOpened()) {
-      throw Exception(['Error: ${ (message.isEmpty) ? '' : message + ' '}The browser is already opened.']);
+      throw Exception([
+        'Error: ${(message.isEmpty) ? '' : message + ' '}The browser is already opened.'
+      ]);
     }
   }
 
   void _throwIsNotOpened({String message = ''}) {
     if (!this.isOpened()) {
-      throw Exception(['Error: ${ (message.isEmpty) ? '' : message + ' '}The browser is not opened.']);
+      throw Exception([
+        'Error: ${(message.isEmpty) ? '' : message + ' '}The browser is not opened.'
+      ]);
     }
   }
 }
 
-typedef onWebViewCreatedCallback = void Function(InAppWebViewController controller);
-typedef onWebViewLoadStartCallback = void Function(InAppWebViewController controller, String url);
-typedef onWebViewLoadStopCallback = void Function(InAppWebViewController controller, String url);
-typedef onWebViewLoadErrorCallback = void Function(InAppWebViewController controller, String url, int code, String message);
-typedef onWebViewProgressChangedCallback = void Function(InAppWebViewController controller, int progress);
-typedef onWebViewConsoleMessageCallback = void Function(InAppWebViewController controller, ConsoleMessage consoleMessage);
-typedef shouldOverrideUrlLoadingCallback = void Function(InAppWebViewController controller, String url);
-typedef onWebViewLoadResourceCallback = void Function(InAppWebViewController controller, WebResourceResponse response, WebResourceRequest request);
-typedef onWebViewScrollChangedCallback = void Function(InAppWebViewController controller, int x, int y);
+typedef onWebViewCreatedCallback = void Function(
+    InAppWebViewController controller);
+typedef onWebViewDecideLoadCallback = void Function(
+    InAppWebViewController controller, String url);
+typedef onWebViewLoadStartCallback = void Function(
+    InAppWebViewController controller, String url);
+typedef onWebViewLoadStopCallback = void Function(
+    InAppWebViewController controller, String url);
+typedef onWebViewLoadErrorCallback = void Function(
+    InAppWebViewController controller, String url, int code, String message);
+typedef onWebViewProgressChangedCallback = void Function(
+    InAppWebViewController controller, int progress);
+typedef onWebViewConsoleMessageCallback = void Function(
+    InAppWebViewController controller, ConsoleMessage consoleMessage);
+typedef shouldOverrideUrlLoadingCallback = void Function(
+    InAppWebViewController controller, String url);
+typedef onWebViewLoadResourceCallback = void Function(
+    InAppWebViewController controller,
+    WebResourceResponse response,
+    WebResourceRequest request);
+typedef onWebViewScrollChangedCallback = void Function(
+    InAppWebViewController controller, int x, int y);
 
 ///Initial [data] as a content for an [InAppWebView] instance, using [baseUrl] as the base URL for it.
 ///The [mimeType] property specifies the format of the data.
@@ -560,7 +567,10 @@ class InAppWebViewInitialData {
   String encoding;
   String baseUrl;
 
-  InAppWebViewInitialData(this.data, {this.mimeType = "text/html", this.encoding = "utf8", this.baseUrl = "about:blank"});
+  InAppWebViewInitialData(this.data,
+      {this.mimeType = "text/html",
+      this.encoding = "utf8",
+      this.baseUrl = "about:blank"});
 
   Map<String, String> toMap() {
     return {
@@ -611,9 +621,11 @@ class InAppWebViewInitialData {
 ///  - __allowsInlineMediaPlayback__: Set to `true` to allow HTML5 media playback to appear inline within the screen layout, using browser-supplied controls rather than native controls. For this to work, add the `webkit-playsinline` attribute to any `<video>` elements. The default value is `false`.
 ///  - __allowsPictureInPictureMediaPlayback__: Set to `true` to allow HTML5 videos play picture-in-picture. The default value is `true`.
 class InAppWebView extends StatefulWidget {
-
   ///Event fires when the [InAppWebView] is created.
   final onWebViewCreatedCallback onWebViewCreated;
+
+  ///iOS only: Event fires when the [InAppWebView] decide to load an [url]
+  final onWebViewDecideLoadCallback onDecideLoad;
 
   ///Event fires when the [InAppWebView] starts to load an [url].
   final onWebViewLoadStartCallback onLoadStart;
@@ -649,14 +661,19 @@ class InAppWebView extends StatefulWidget {
 
   ///Initial url that will be loaded.
   final String initialUrl;
+
   ///Initial asset file that will be loaded. See [InAppWebView.loadFile()] for explanation.
   final String initialFile;
+
   ///Initial [InAppWebViewInitialData] that will be loaded.
   final InAppWebViewInitialData initialData;
+
   ///Initial headers that will be used.
   final Map<String, String> initialHeaders;
+
   ///Initial options that will be used.
   final Map<String, dynamic> initialOptions;
+
   /// `gestureRecognizers` specifies which gestures should be consumed by the web view.
   /// It is possible for other gesture recognizers to be competing with the web view on pointer
   /// events, e.g if the web view is inside a [ListView] the [ListView] will want to handle
@@ -674,6 +691,7 @@ class InAppWebView extends StatefulWidget {
     this.initialHeaders = const {},
     this.initialOptions = const {},
     this.onWebViewCreated,
+    this.onDecideLoad,
     this.onLoadStart,
     this.onLoadStop,
     this.onLoadError,
@@ -690,7 +708,6 @@ class InAppWebView extends StatefulWidget {
 }
 
 class _InAppWebViewState extends State<InAppWebView> {
-
   InAppWebViewController _controller;
 
   @override
@@ -714,12 +731,12 @@ class _InAppWebViewState extends State<InAppWebView> {
           gestureRecognizers: widget.gestureRecognizers,
           layoutDirection: TextDirection.rtl,
           creationParams: <String, dynamic>{
-              'initialUrl': widget.initialUrl,
-              'initialFile': widget.initialFile,
-              'initialData': widget.initialData?.toMap(),
-              'initialHeaders': widget.initialHeaders,
-              'initialOptions': widget.initialOptions
-            },
+            'initialUrl': widget.initialUrl,
+            'initialFile': widget.initialFile,
+            'initialData': widget.initialData?.toMap(),
+            'initialHeaders': widget.initialHeaders,
+            'initialOptions': widget.initialOptions
+          },
           creationParamsCodec: const StandardMessageCodec(),
         ),
       );
@@ -760,16 +777,15 @@ class _InAppWebViewState extends State<InAppWebView> {
 /// An [InAppWebViewController] instance can be obtained by setting the [InAppWebView.onWebViewCreated]
 /// callback for an [InAppWebView] widget.
 class InAppWebViewController {
-
   InAppWebView _widget;
   MethodChannel _channel;
-  Map<String, JavaScriptHandlerCallback> javaScriptHandlersMap = HashMap<String, JavaScriptHandlerCallback>();
+  Map<String, JavaScriptHandlerCallback> javaScriptHandlersMap =
+      HashMap<String, JavaScriptHandlerCallback>();
   bool _isOpened = false;
   // ignore: unused_field
   int _id;
   String _inAppBrowserUuid;
   InAppBrowser _inAppBrowser;
-
 
   InAppWebViewController(int id, InAppWebView widget) {
     _id = id;
@@ -778,27 +794,31 @@ class InAppWebViewController {
     _widget = widget;
   }
 
-  InAppWebViewController.fromInAppBrowser(String uuid, MethodChannel channel, InAppBrowser inAppBrowser) {
+  InAppWebViewController.fromInAppBrowser(
+      String uuid, MethodChannel channel, InAppBrowser inAppBrowser) {
     _inAppBrowserUuid = uuid;
     _channel = channel;
     _inAppBrowser = inAppBrowser;
   }
 
   Future<dynamic> _handleMethod(MethodCall call) async {
-    switch(call.method) {
+    switch (call.method) {
+      case "onDecideLoad":
+        String url = call.arguments["url"];
+        if (_widget != null && _widget.onLoadStart != null)
+          _widget.onDecideLoad(this, url);
+        break;
       case "onLoadStart":
         String url = call.arguments["url"];
         if (_widget != null && _widget.onLoadStart != null)
           _widget.onLoadStart(this, url);
-        else if (_inAppBrowser != null)
-          _inAppBrowser.onLoadStart(url);
+        else if (_inAppBrowser != null) _inAppBrowser.onLoadStart(url);
         break;
       case "onLoadStop":
         String url = call.arguments["url"];
         if (_widget != null && _widget.onLoadStop != null)
           _widget.onLoadStop(this, url);
-        else if (_inAppBrowser != null)
-          _inAppBrowser.onLoadStop(url);
+        else if (_inAppBrowser != null) _inAppBrowser.onLoadStop(url);
         break;
       case "onLoadError":
         String url = call.arguments["url"];
@@ -842,8 +862,10 @@ class InAppWebViewController {
         headersRequest = headersResponse.cast<String, String>();
         String method = rawRequest["method"];
 
-        var response = new WebResourceResponse(urlResponse, headersResponse, statusCode, startTime, duration, data);
-        var request = new WebResourceRequest(urlRequest, headersRequest, method);
+        var response = new WebResourceResponse(urlResponse, headersResponse,
+            statusCode, startTime, duration, data);
+        var request =
+            new WebResourceRequest(urlRequest, headersRequest, method);
 
         if (_widget != null && _widget.onLoadResource != null)
           _widget.onLoadResource(this, response, request);
@@ -856,23 +878,25 @@ class InAppWebViewController {
         String message = call.arguments["message"];
         ConsoleMessageLevel messageLevel;
         ConsoleMessageLevel.values.forEach((element) {
-          if ("ConsoleMessageLevel." + call.arguments["messageLevel"] == element.toString()) {
+          if ("ConsoleMessageLevel." + call.arguments["messageLevel"] ==
+              element.toString()) {
             messageLevel = element;
             return;
           }
         });
         if (_widget != null && _widget.onConsoleMessage != null)
-          _widget.onConsoleMessage(this, ConsoleMessage(sourceURL, lineNumber, message, messageLevel));
+          _widget.onConsoleMessage(this,
+              ConsoleMessage(sourceURL, lineNumber, message, messageLevel));
         else if (_inAppBrowser != null)
-          _inAppBrowser.onConsoleMessage(ConsoleMessage(sourceURL, lineNumber, message, messageLevel));
+          _inAppBrowser.onConsoleMessage(
+              ConsoleMessage(sourceURL, lineNumber, message, messageLevel));
         break;
       case "onScrollChanged":
         int x = call.arguments["x"];
         int y = call.arguments["y"];
         if (_widget != null && _widget.onScrollChanged != null)
           _widget.onScrollChanged(this, x, y);
-        else if (_inAppBrowser != null)
-          _inAppBrowser.onScrollChanged(x, y);
+        else if (_inAppBrowser != null) _inAppBrowser.onScrollChanged(x, y);
         break;
       case "onCallJsHandler":
         String handlerName = call.arguments["handlerName"];
@@ -931,7 +955,10 @@ class InAppWebViewController {
     HttpClient client = new HttpClient();
     var url = Uri.parse(await getUrl());
     // solution found here: https://stackoverflow.com/a/15750809/4637638
-    var faviconUrl = Uri.parse("https://plus.google.com/_/favicon?domain_url=" + url.scheme + "://" + url.host);
+    var faviconUrl = Uri.parse("https://plus.google.com/_/favicon?domain_url=" +
+        url.scheme +
+        "://" +
+        url.host);
 
     client.getUrl(faviconUrl).then((HttpClientRequest request) {
       return request.close();
@@ -945,7 +972,8 @@ class InAppWebViewController {
   }
 
   ///Loads the given [url] with optional [headers] specified as a map from name to value.
-  Future<void> loadUrl(String url, {Map<String, String> headers = const {}}) async {
+  Future<void> loadUrl(String url,
+      {Map<String, String> headers = const {}}) async {
     assert(url != null && url.isNotEmpty);
     Map<String, dynamic> args = <String, dynamic>{};
     if (_inAppBrowserUuid != null && _inAppBrowser != null) {
@@ -974,7 +1002,10 @@ class InAppWebViewController {
   ///Loads the given [data] into this WebView, using [baseUrl] as the base URL for the content.
   ///The [mimeType] parameter specifies the format of the data.
   ///The [encoding] parameter specifies the encoding of the data.
-  Future<void> loadData(String data, {String mimeType = "text/html", String encoding = "utf8", String baseUrl = "about:blank"}) async {
+  Future<void> loadData(String data,
+      {String mimeType = "text/html",
+      String encoding = "utf8",
+      String baseUrl = "about:blank"}) async {
     assert(data != null);
     Map<String, dynamic> args = <String, dynamic>{};
     if (_inAppBrowserUuid != null && _inAppBrowser != null) {
@@ -1017,7 +1048,8 @@ class InAppWebViewController {
   ///inAppBrowser.loadFile("assets/index.html");
   ///...
   ///```
-  Future<void> loadFile(String assetFilePath, {Map<String, String> headers = const {}}) async {
+  Future<void> loadFile(String assetFilePath,
+      {Map<String, String> headers = const {}}) async {
     assert(assetFilePath != null && assetFilePath.isNotEmpty);
     Map<String, dynamic> args = <String, dynamic>{};
     if (_inAppBrowserUuid != null && _inAppBrowser != null) {
@@ -1220,7 +1252,8 @@ class InAppWebViewController {
   ///    });
   ///  """);
   ///```
-  void addJavaScriptHandler(String handlerName, JavaScriptHandlerCallback callback) {
+  void addJavaScriptHandler(
+      String handlerName, JavaScriptHandlerCallback callback) {
     this.javaScriptHandlersMap[handlerName] = (callback);
   }
 
@@ -1263,7 +1296,8 @@ class InAppWebViewController {
       args.putIfAbsent('uuid', () => _inAppBrowserUuid);
     }
     args.putIfAbsent('optionsType', () => "InAppBrowserOptions");
-    Map<dynamic, dynamic> options = await _ChannelManager.channel.invokeMethod('getOptions', args);
+    Map<dynamic, dynamic> options =
+        await _ChannelManager.channel.invokeMethod('getOptions', args);
     options = options.cast<String, dynamic>();
     return options;
   }
@@ -1278,7 +1312,8 @@ class InAppWebViewController {
       _inAppBrowser._throwIsNotOpened();
       args.putIfAbsent('uuid', () => _inAppBrowserUuid);
     }
-    Map<dynamic, dynamic> result = await _channel.invokeMethod('getCopyBackForwardList', args);
+    Map<dynamic, dynamic> result =
+        await _channel.invokeMethod('getCopyBackForwardList', args);
     result = result.cast<String, dynamic>();
 
     List<dynamic> historyListMap = result["history"];
@@ -1287,17 +1322,18 @@ class InAppWebViewController {
     int currentIndex = result["currentIndex"];
 
     List<WebHistoryItem> historyList = List();
-    for(var i = 0; i < historyListMap.length; i++) {
+    for (var i = 0; i < historyListMap.length; i++) {
       LinkedHashMap<dynamic, dynamic> historyItem = historyListMap[i];
-      historyList.add(WebHistoryItem(historyItem["originalUrl"], historyItem["title"], historyItem["url"], i, i - currentIndex));
+      historyList.add(WebHistoryItem(historyItem["originalUrl"],
+          historyItem["title"], historyItem["url"], i, i - currentIndex));
     }
     return WebHistory(historyList, currentIndex);
   }
+
   ///Dispose/Destroy the WebView.
   Future<void> _dispose() async {
     await _channel.invokeMethod('dispose');
   }
-
 }
 
 ///WebHistory class.
@@ -1305,8 +1341,10 @@ class InAppWebViewController {
 ///This class contains a snapshot of the current back/forward list for a WebView.
 class WebHistory {
   List<WebHistoryItem> _list;
+
   ///List of all [WebHistoryItem]s.
   List<WebHistoryItem> get list => _list;
+
   ///Index of the current [WebHistoryItem].
   int currentIndex;
 
@@ -1319,23 +1357,27 @@ class WebHistory {
 class WebHistoryItem {
   ///Original url of this history item.
   String originalUrl;
+
   ///Document title of this history item.
   String title;
+
   ///Url of this history item.
   String url;
+
   ///0-based position index in the back-forward [WebHistory.list].
   int index;
+
   ///Position offset respect to the currentIndex of the back-forward [WebHistory.list].
   int offset;
 
-  WebHistoryItem(this.originalUrl, this.title, this.url, this.index, this.offset);
+  WebHistoryItem(
+      this.originalUrl, this.title, this.url, this.index, this.offset);
 }
 
 ///InAppLocalhostServer class.
 ///
 ///This class allows you to create a simple server on `http://localhost:[port]/` in order to be able to load your assets file on a server. The default [port] value is `8080`.
 class InAppLocalhostServer {
-
   HttpServer _server;
   int _port = 8080;
 
@@ -1355,7 +1397,6 @@ class InAppLocalhostServer {
   ///```
   ///The `NSAllowsLocalNetworking` key is available since **iOS 10**.
   Future<void> start() async {
-
     if (this._server != null) {
       throw Exception('Server already started on http://localhost:$_port');
     }
@@ -1375,8 +1416,7 @@ class InAppLocalhostServer {
           path += (path.endsWith('/')) ? 'index.html' : '';
 
           try {
-            body = (await rootBundle.load(path))
-                .buffer.asUint8List();
+            body = (await rootBundle.load(path)).buffer.asUint8List();
           } catch (e) {
             print(e.toString());
             request.response.close();
@@ -1384,14 +1424,17 @@ class InAppLocalhostServer {
           }
 
           var contentType = ['text', 'html'];
-          if (!request.requestedUri.path.endsWith('/') && request.requestedUri.pathSegments.isNotEmpty) {
-            var mimeType = lookupMimeType(request.requestedUri.path, headerBytes: body);
+          if (!request.requestedUri.path.endsWith('/') &&
+              request.requestedUri.pathSegments.isNotEmpty) {
+            var mimeType =
+                lookupMimeType(request.requestedUri.path, headerBytes: body);
             if (mimeType != null) {
               contentType = mimeType.split('/');
             }
           }
 
-          request.response.headers.contentType = new ContentType(contentType[0], contentType[1], charset: 'utf-8');
+          request.response.headers.contentType =
+              new ContentType(contentType[0], contentType[1], charset: 'utf-8');
           request.response.add(body);
           request.response.close();
         });
@@ -1411,7 +1454,6 @@ class InAppLocalhostServer {
       this._server = null;
     }
   }
-
 }
 
 ///Manages the cookies used by WebView instances.
@@ -1419,31 +1461,29 @@ class InAppLocalhostServer {
 ///**NOTE for iOS**: available from iOS 11.0+.
 class CookieManager {
   static bool _initialized = false;
-  static const MethodChannel _channel = const MethodChannel('com.pichillilorenzo/flutter_inappbrowser_cookiemanager');
+  static const MethodChannel _channel = const MethodChannel(
+      'com.pichillilorenzo/flutter_inappbrowser_cookiemanager');
 
-  static void _init () {
+  static void _init() {
     _channel.setMethodCallHandler(_handleMethod);
     _initialized = true;
   }
 
-  static Future<dynamic> _handleMethod(MethodCall call) async {
-  }
+  static Future<dynamic> _handleMethod(MethodCall call) async {}
 
   ///Sets a cookie for the given [url]. Any existing cookie with the same [host], [path] and [name] will be replaced with the new cookie. The cookie being set will be ignored if it is expired.
   ///
   ///The default value of [path] is `"/"`.
   ///If [domain] is `null`, its default value will be the domain name of [url].
   static Future<void> setCookie(String url, String name, String value,
-      { String domain,
-        String path = "/",
-        int expiresDate,
-        int maxAge,
-        bool isSecure }) async {
-    if (!_initialized)
-      _init();
+      {String domain,
+      String path = "/",
+      int expiresDate,
+      int maxAge,
+      bool isSecure}) async {
+    if (!_initialized) _init();
 
-    if (domain == null)
-      domain = _getDomainName(url);
+    if (domain == null) domain = _getDomainName(url);
 
     assert(url != null && url.isNotEmpty);
     assert(name != null && name.isNotEmpty);
@@ -1466,8 +1506,7 @@ class CookieManager {
 
   ///Gets all the cookies for the given [url].
   static Future<List<Map<String, dynamic>>> getCookies(String url) async {
-    if (!_initialized)
-      _init();
+    if (!_initialized) _init();
 
     assert(url != null && url.isNotEmpty);
 
@@ -1475,7 +1514,7 @@ class CookieManager {
     args.putIfAbsent('url', () => url);
     List<dynamic> cookies = await _channel.invokeMethod('getCookies', args);
     cookies = cookies.cast<Map<dynamic, dynamic>>();
-    for(var i = 0; i < cookies.length; i++) {
+    for (var i = 0; i < cookies.length; i++) {
       cookies[i] = cookies[i].cast<String, dynamic>();
     }
     cookies = cookies.cast<Map<String, dynamic>>();
@@ -1484,8 +1523,7 @@ class CookieManager {
 
   ///Gets a cookie by its [name] for the given [url].
   static Future<Map<String, dynamic>> getCookie(String url, String name) async {
-    if (!_initialized)
-      _init();
+    if (!_initialized) _init();
 
     assert(url != null && url.isNotEmpty);
     assert(name != null && name.isNotEmpty);
@@ -1494,10 +1532,9 @@ class CookieManager {
     args.putIfAbsent('url', () => url);
     List<dynamic> cookies = await _channel.invokeMethod('getCookies', args);
     cookies = cookies.cast<Map<dynamic, dynamic>>();
-    for(var i = 0; i < cookies.length; i++) {
+    for (var i = 0; i < cookies.length; i++) {
       cookies[i] = cookies[i].cast<String, dynamic>();
-      if (cookies[i]["name"] == name)
-        return cookies[i];
+      if (cookies[i]["name"] == name) return cookies[i];
     }
     return null;
   }
@@ -1506,12 +1543,11 @@ class CookieManager {
   ///
   ///The default value of [path] is `"/"`.
   ///If [domain] is `null` or empty, its default value will be the domain name of [url].
-  static Future<void> deleteCookie(String url, String name, {String domain = "", String path = "/"}) async {
-    if (!_initialized)
-      _init();
+  static Future<void> deleteCookie(String url, String name,
+      {String domain = "", String path = "/"}) async {
+    if (!_initialized) _init();
 
-    if (domain == null || domain.isEmpty)
-      domain = _getDomainName(url);
+    if (domain == null || domain.isEmpty) domain = _getDomainName(url);
 
     assert(url != null && url.isNotEmpty);
     assert(name != null && name.isNotEmpty);
@@ -1530,12 +1566,11 @@ class CookieManager {
   ///
   ///The default value of [path] is `"/"`.
   ///If [domain] is `null` or empty, its default value will be the domain name of [url].
-  static Future<void> deleteCookies(String url, {String domain = "", String path = "/"}) async {
-    if (!_initialized)
-      _init();
+  static Future<void> deleteCookies(String url,
+      {String domain = "", String path = "/"}) async {
+    if (!_initialized) _init();
 
-    if (domain == null || domain.isEmpty)
-      domain = _getDomainName(url);
+    if (domain == null || domain.isEmpty) domain = _getDomainName(url);
 
     assert(url != null && url.isNotEmpty);
     assert(domain != null && url.isNotEmpty);
@@ -1550,8 +1585,7 @@ class CookieManager {
 
   ///Removes all cookies.
   static Future<void> deleteAllCookies() async {
-    if (!_initialized)
-      _init();
+    if (!_initialized) _init();
 
     Map<String, dynamic> args = <String, dynamic>{};
     await _channel.invokeMethod('deleteAllCookies', args);
@@ -1560,8 +1594,7 @@ class CookieManager {
   static String _getDomainName(String url) {
     Uri uri = Uri.parse(url);
     String domain = uri.host;
-    if (domain == null)
-      return "";
+    if (domain == null) return "";
     return domain.startsWith("www.") ? domain.substring(4) : domain;
   }
 }

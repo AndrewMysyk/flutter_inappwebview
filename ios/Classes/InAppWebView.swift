@@ -559,17 +559,12 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
         decisionHandler(.allow)
     }
     
-    //    func webView(_ webView: WKWebView,
-    //                 decidePolicyFor navigationResponse: WKNavigationResponse,
-    //                 decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
-    //        let mimeType = navigationResponse.response.mimeType
-    //        if mimeType != nil && !mimeType!.starts(with: "text/") {
-    //            download(url: webView.url)
-    //            decisionHandler(.cancel)
-    //            return
-    //        }
-    //        decisionHandler(.allow)
-    //    }
+    func webView(_ webView: WKWebView,
+                decidePolicyFor navigationResponse: WKNavigationResponse,
+                decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
+        onDecideLoad(url: url)
+        decisionHandler(.allow)
+    }
     //
     //    func download (url: URL?) {
     //        let filename = url?.lastPathComponent
@@ -645,6 +640,16 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
             onScrollChanged(x: x, y: y)
         }
         setNeedsLayout()
+    }
+
+    public func onDecideLoad(url: String) {
+        var arguments: [String: Any] = ["url": url]
+        if IABController != nil {
+            arguments["uuid"] = IABController!.uuid
+        }
+        if let channel = getChannel() {
+            channel.invokeMethod("onDecideLoad", arguments: arguments)
+        }
     }
     
     public func onLoadStart(url: String) {
