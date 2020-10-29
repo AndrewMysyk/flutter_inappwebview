@@ -514,7 +514,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
     public func webView(_ webView: WKWebView,
                  decidePolicyFor navigationAction: WKNavigationAction,
                  decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        onDecideLoad(navigationAction.request.url?.absoluteString ?? "")
+        onDecideLoad(url: navigationAction.request.url?.absoluteString ?? "")
         if let url = navigationAction.request.url {
             
             if url.absoluteString != url.absoluteString && (options?.useOnLoadResource)! {
