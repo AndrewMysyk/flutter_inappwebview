@@ -189,6 +189,13 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
         if (options?.clearCache)! {
             clearCache()
         }
+        
+        for subview: UIView in subviews {
+            if subview is UIScrollView {
+                (subview as! UIScrollView).showsHorizontalScrollIndicator = false
+                (subview as! UIScrollView).showsVerticalScrollIndicator = false
+            }
+        }
     }
     
     public static func preWKWebViewConfiguration(options: InAppWebViewOptions?) -> WKWebViewConfiguration {
